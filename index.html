@@ -22,16 +22,29 @@
       }
       #container {
         position: relative;
-        width: 100vw;
-        height: 100vh;
+        width: 360px;
+        height: 620px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+        border-radius: 12px;
         overflow: hidden;
+        margin-top: 10px;
       }
+
+      @media (max-width: 480px) {
+        #container {
+          width: 100vw;
+          height: 100vh;
+          margin-top: 0;
+          border-radius: 0;
+        }
+      }
+
       canvas {
         display: block;
         width: 100%;
         height: 100%;
       }
+
       #showButton {
         position: absolute;
         top: 20px;
@@ -44,6 +57,7 @@
         color: white;
         cursor: pointer;
       }
+
       #overlay {
         position: absolute;
         top: 20px;
@@ -61,6 +75,7 @@
         line-height: 1.5;
         overflow-y: auto;
       }
+
       #closeOverlay {
         position: absolute;
         top: 8px;
@@ -77,6 +92,7 @@
         cursor: pointer;
         z-index: 20;
       }
+
       #pixelSizeControl {
         position: absolute;
         top: 8px;
@@ -86,6 +102,12 @@
         align-items: center;
         z-index: 30;
       }
+
+      #fontSizeSlider {
+        width: 80px;
+        margin: 4px 0;
+      }
+
       #pixelSizeValueDisplay {
         width: 40px;
         height: 28px;
@@ -97,23 +119,9 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        margin: 2px 0;
         font-family: "Courier New", monospace;
       }
-      .adjustBtn {
-        width: 40px;
-        height: 20px;
-        background: #08f437;
-        border: none;
-        color: black;
-        font-weight: bold;
-        font-size: 18px;
-        cursor: pointer;
-        border-radius: 4px;
-        line-height: 16px;
-        padding: 0;
-        margin: 2px 0;
-      }
+
       #pixelSizeLabel {
         background: #08f437;
         color: black;
@@ -125,16 +133,7 @@
         text-align: center;
         max-width: 110px;
       }
-      #pixelSizeLabel::after {
-        content: "";
-        position: absolute;
-        bottom: -8px;
-        left: 50%;
-        transform: translateX(-50%);
-        border-width: 8px 8px 0 8px;
-        border-style: solid;
-        border-color: #08f437 transparent transparent transparent;
-      }
+
       audio {
         display: none;
       }
@@ -148,22 +147,32 @@
         <div id="closeOverlay" title="Close Overlay">&#10005;</div>
         <div id="overlayText">
           <h2>HAPPY BIRTHDAY KIM 🎂🥳</h2>
-          <p>Another year older, but still slayin'... [trimmed for brevity]</p>
+          <p>
+            Another year older, but still slayin' You're such a good friend and
+            it is very fun when I'm with you, I kinda lowkey missing the moments
+            when we are stressing out to the coding project that our professors
+            gave us even though our outputs are AI generated. I just want to tell
+            you that no matter how hard life is just keep on fighting and don't
+            hesitate to ask me for help when you need it. Once again Happy
+            birthday and enjoy your day.
+          </p>
+          <p>Lots of love, Raymund</p>
         </div>
       </div>
     </div>
     <div id="pixelSizeControl">
-      <div id="pixelSizeLabel">adjust me to 1</div>
-      <button class="adjustBtn" id="upBtn">&#9650;</button>
+      <div id="pixelSizeLabel">Font Size</div>
+      <input type="range" id="fontSizeSlider" min="1" max="30" value="10" />
       <div id="pixelSizeValueDisplay">10</div>
-      <button class="adjustBtn" id="downBtn">&#9660;</button>
     </div>
     <audio id="backgroundAudio" loop>
       <source src="sound.mp3" type="audio/mpeg" />
     </audio>
+
     <script>
       const message = `HappyBirthday`;
       const imageURL = "kim.png";
+
       const canvas = document.getElementById("textPortrait");
       const ctx = canvas.getContext("2d");
       const container = document.getElementById("container");
@@ -172,11 +181,10 @@
       const closeOverlay = document.getElementById("closeOverlay");
       const pixelSizeControl = document.getElementById("pixelSizeControl");
       const pixelSizeValueDisplay = document.getElementById("pixelSizeValueDisplay");
-      const upBtn = document.getElementById("upBtn");
-      const downBtn = document.getElementById("downBtn");
+      const fontSizeSlider = document.getElementById("fontSizeSlider");
       const audio = document.getElementById("backgroundAudio");
 
-      let fontSize = 10;
+      let fontSize = parseInt(fontSizeSlider.value);
       let loadedImageData = null;
       const dpr = window.devicePixelRatio || 1;
       const vw = window.innerWidth;
@@ -194,8 +202,8 @@
 
       img.onload = () => {
         const offCanvas = document.createElement("canvas");
-        offCanvas.width = vw * dpr;
-        offCanvas.height = vh * dpr;
+        offCanvas.width = canvas.width;
+        offCanvas.height = canvas.height;
         const offCtx = offCanvas.getContext("2d");
         offCtx.drawImage(img, 0, 0, offCanvas.width, offCanvas.height);
         loadedImageData = offCtx.getImageData(0, 0, offCanvas.width, offCanvas.height);
@@ -256,7 +264,7 @@
         showButton.style.display = "none";
         container.style.display = "block";
         overlay.style.display = "block";
-        audio.play().catch(e => console.warn("Audio blocked:", e));
+        audio.play().catch((e) => console.warn("Audio play blocked", e));
       });
 
       closeOverlay.addEventListener("click", () => {
@@ -265,22 +273,10 @@
         drawTextPortraitWithTyping(fontSize, message);
       });
 
-      pixelSizeValueDisplay.textContent = fontSize;
-
-      upBtn.addEventListener("click", () => {
-        if (fontSize < 30) {
-          fontSize++;
-          pixelSizeValueDisplay.textContent = fontSize;
-          drawTextPortrait(fontSize, message);
-        }
-      });
-
-      downBtn.addEventListener("click", () => {
-        if (fontSize > 1) {
-          fontSize--;
-          pixelSizeValueDisplay.textContent = fontSize;
-          drawTextPortrait(fontSize, message);
-        }
+      fontSizeSlider.addEventListener("input", () => {
+        fontSize = parseInt(fontSizeSlider.value);
+        pixelSizeValueDisplay.textContent = fontSize;
+        drawTextPortrait(fontSize, message);
       });
     </script>
   </body>
