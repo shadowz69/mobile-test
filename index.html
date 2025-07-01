@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mobile Text Portrait</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        font-family: "Segoe UI", sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: #000;
+      }
+      canvas {
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+        max-width: 100%;
+        height: auto;
+      }
+      #showButton {
+        padding: 12px 24px;
+        margin-bottom: 12px;
+        font-size: 16px;
+        border: none;
+        border-radius: 6px;
+        background: linear-gradient(to right, #08f437, #00c3a1);
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <button id="showButton">Show Message</button>
+    <canvas id="textPortrait"></canvas>
+
+    <script>
+      const message = "HappyBirthday";
+      const imageURL = "kim.png";
+      const canvas = document.getElementById("textPortrait");
+      const ctx = canvas.getContext("2d");
+      const showButton = document.getElementById("showButton");
+
+      let fontSize = 10; // Adjustable later if needed
+
+      showButton.addEventListener("click", () => {
+        showButton.style.display = "none";
+        drawTextPortrait();
+      });
+
+      function drawTextPortrait() {
+        const dpr = window.devicePixelRatio || 1;
+
+        // Get viewport size
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+
+        // Set canvas dimensions for high-DPI clarity
+        canvas.width = vw * dpr;
+        canvas.height = vh * dpr;
+        canvas.style.width = vw + "px";
+        canvas.style.height = vh + "px";
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // scale everything for DPR
+
+        const img = new Image();
+        img.src = imageURL;
+        img.crossOrigin = "anonymous";
+        img.onload = () => {
+          // Draw image to an offscreen canvas
+          const tempCanvas = document.createElement("canvas");
+          tempCanvas.width = vw * dpr;
+          tempCanvas.height = vh * dpr;
+          const tempCtx = tempCanvas.getContext("2d");
+          tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
+          const imageData = tempCtx.getImageData(
+            0,
+            0,
+            tempCanvas.width,
+            tempCanvas.height
+          );
+          const data = imageData.data;
+
+          const charW = fontSize * 0.6;
+          const charH = fontSize * 1.2;
+
+          const cols = Math.floor(vw / charW);
+          const rows = Math.floor(vh / charH);
+
+          let fullMessage = "";
+          while (fullMessage.length < cols * rows) {
+            fullMessage += message + " ";
+          }
+
+          ctx.fillStyle = "#000";
+          ctx.fillRect(0, 0, vw, vh);
+          ctx.font = `${fontSize}px Courier New, monospace`;
+          ctx.textBaseline = "top";
+
+          let i = 0;
+          for (let y = 0; y < rows; y++) {
+            for (let x = 0; x < cols; x++) {
+              const ch = fullMessage[i++];
+              const px = Math.floor(x * charW * dpr);
+              const py = Math.floor(y * charH * dpr);
+              const idx = (py * tempCanvas.width + px) * 4;
+              const r = data[idx];
+              const g = data[idx + 1];
+              const b = data[idx + 2];
+              const a = data[idx + 3];
+              if (a > 0) {
+                ctx.fillStyle = `rgba(${r},${g},${b},${a / 255})`;
+                ctx.fillText(ch, x * charW, y * charH);
+              }
+            }
+          }
+        };
+      }
+    </script>
+  </body>
+</html>
