@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -6,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>message</title>
     <style>
-      * {
-        box-sizing: border-box;
-      }
       body {
         margin: 0;
         padding: 0;
@@ -19,25 +15,21 @@
         height: 100vh;
         overflow: hidden;
         justify-content: center;
-        background: #000;
       }
       #container {
         position: relative;
-        width: 100vw;
-        height: 100vh;
-        background: url("kim.png") center/cover no-repeat;
+        width: 360px;
+        height: 620px; /* moved container slightly higher */
+
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+        border-radius: 12px;
         overflow: hidden;
+        margin-top: 10px;
       }
       canvas {
-        display: block;
-        width: 100%;
-        height: 100%;
+        background-color: transparent;
       }
       #showButton {
-        position: absolute;
-        top: 20px;
-        z-index: 100;
         padding: 14px 30px;
         font-size: 18px;
         border: none;
@@ -45,15 +37,21 @@
         background: linear-gradient(90deg, rgb(83, 228, 192), #08f437);
         color: white;
         cursor: pointer;
+        transition: background 0.3s ease;
+        margin-bottom: 8px;
+      }
+      #showButton:hover {
+        background: linear-gradient(90deg, #06f211, rgb(94, 249, 213));
       }
       #overlay {
         position: absolute;
         top: 20px;
         left: 20px;
-        right: 20px;
-        bottom: 20px;
+        width: 320px;
+        height: 460px;
         background-color: rgba(0, 0, 0, 0.85);
         border-radius: 10px;
+        box-shadow: 0 0 20px rgb(255 255 255 / 0.25);
         z-index: 10;
         display: none;
         user-select: none;
@@ -62,6 +60,7 @@
         font-size: 18px;
         line-height: 1.5;
         overflow-y: auto;
+        box-sizing: border-box;
       }
       #closeOverlay {
         position: absolute;
@@ -78,15 +77,19 @@
         text-align: center;
         cursor: pointer;
         z-index: 20;
+        user-select: none;
       }
+      /* Pixel Size Control Container in upper right, moved further right */
       #pixelSizeControl {
         position: absolute;
         top: 8px;
-        right: 8px;
-        display: none;
+        right: 2px; /* moved more right */
+        display: flex;
         flex-direction: column;
         align-items: center;
+        user-select: none;
         z-index: 30;
+        display: none; /* hidden initially */
       }
       #pixelSizeValueDisplay {
         width: 40px;
@@ -101,6 +104,7 @@
         align-items: center;
         margin: 2px 0;
         font-family: "Courier New", monospace;
+        user-select: none;
       }
       .adjustBtn {
         width: 40px;
@@ -112,11 +116,18 @@
         font-size: 18px;
         cursor: pointer;
         border-radius: 4px;
+        user-select: none;
         line-height: 16px;
         padding: 0;
         margin: 2px 0;
+        transition: background 0.3s ease;
       }
+      .adjustBtn:hover {
+        background: #06c929;
+      }
+      /* Chat bubble style for the label */
       #pixelSizeLabel {
+        position: relative;
         background: #08f437;
         color: black;
         padding: 6px 12px;
@@ -124,6 +135,8 @@
         font-weight: 600;
         font-size: 14px;
         margin-bottom: 6px;
+        user-select: none;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
         text-align: center;
         max-width: 110px;
       }
@@ -145,50 +158,62 @@
   <body>
     <button id="showButton">Show Message</button>
     <div id="container" style="display: none">
-      <canvas id="textPortrait"></canvas>
+      <canvas id="textPortrait" width="360" height="620"></canvas>
       <div id="overlay">
         <div id="closeOverlay" title="Close Overlay">&#10005;</div>
         <div id="overlayText">
           <h2>HAPPY BIRTHDAY KIM 🎂🥳</h2>
-          <p>Another year older, but still slayin'... [trimmed for brevity]</p>
+          <p>
+            Another year older, but still slayin' You're such a good friend and
+            it is very fun when I'm with you, I kinda lowkey missing the moments
+            when we are stressing out to the coding project that our professors
+            gave us eventho our outputs are AI generated. I just want to tell
+            you that no matter how hard life is just keep on fighting and don't
+            hesitate to ask me for help when you need it. Once again Happy
+            birthday and enjoy your day.
+          </p>
+          <p>Lots of love, Raymund</p>
         </div>
       </div>
     </div>
     <div id="pixelSizeControl">
       <div id="pixelSizeLabel">adjust me to 1</div>
-      <button class="adjustBtn" id="upBtn">&#9650;</button>
-      <div id="pixelSizeValueDisplay">10</div>
-      <button class="adjustBtn" id="downBtn">&#9660;</button>
+      <button class="adjustBtn" id="upBtn" title="Increase pixel size">
+        &#9650;
+      </button>
+      <div id="pixelSizeValueDisplay">30</div>
+      <button class="adjustBtn" id="downBtn" title="Decrease pixel size">
+        &#9660;
+      </button>
     </div>
     <audio id="backgroundAudio" loop>
       <source src="sound.mp3" type="audio/mpeg" />
+      Your browser does not support the audio element.
     </audio>
+
     <script>
       const message = `HappyBirthday`;
       const imageURL = "kim.png";
+
       const canvas = document.getElementById("textPortrait");
       const ctx = canvas.getContext("2d");
+      const width = canvas.width;
+      const height = canvas.height;
       const container = document.getElementById("container");
       const showButton = document.getElementById("showButton");
       const overlay = document.getElementById("overlay");
       const closeOverlay = document.getElementById("closeOverlay");
       const pixelSizeControl = document.getElementById("pixelSizeControl");
-      const pixelSizeValueDisplay = document.getElementById("pixelSizeValueDisplay");
+      const pixelSizeLabel = document.getElementById("pixelSizeLabel");
+      const pixelSizeValueDisplay = document.getElementById(
+        "pixelSizeValueDisplay"
+      );
       const upBtn = document.getElementById("upBtn");
       const downBtn = document.getElementById("downBtn");
       const audio = document.getElementById("backgroundAudio");
 
-      let fontSize = 10;
+      let fontSize = 30; // default font size
       let loadedImageData = null;
-      const dpr = window.devicePixelRatio || 1;
-      const vw = window.innerWidth;
-      const vh = window.innerHeight;
-
-      canvas.width = vw * dpr;
-      canvas.height = vh * dpr;
-      canvas.style.width = vw + "px";
-      canvas.style.height = vh + "px";
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
       const img = new Image();
       img.crossOrigin = "anonymous";
@@ -196,59 +221,83 @@
 
       img.onload = () => {
         const offCanvas = document.createElement("canvas");
-        offCanvas.width = vw * dpr;
-        offCanvas.height = vh * dpr;
+        offCanvas.width = width;
+        offCanvas.height = height;
         const offCtx = offCanvas.getContext("2d");
-        offCtx.drawImage(img, 0, 0, offCanvas.width, offCanvas.height);
-        loadedImageData = offCtx.getImageData(0, 0, offCanvas.width, offCanvas.height);
+        const imgWidth = 300; // or any smaller width you want
+        const imgHeight = 520; // or any smaller height you want
+        const posX = (width - imgWidth) / 2;
+        const posY = 30; // pushes the image toward the top
+
+        offCtx.drawImage(img, posX, posY, imgWidth, imgHeight);
+
+        loadedImageData = offCtx.getImageData(0, 0, width, height);
+        // Initially don't draw text yet, only after typing and overlay closes
       };
 
       function drawTextPortrait(fontSizeLocal, textToDraw) {
         if (!loadedImageData) return;
-        const width = canvas.width / dpr;
-        const height = canvas.height / dpr;
-        const data = loadedImageData.data;
 
         ctx.clearRect(0, 0, width, height);
         ctx.fillStyle = "#000";
         ctx.fillRect(0, 0, width, height);
 
-        const lineHeight = fontSizeLocal * 1.2;
-        const charWidth = fontSizeLocal * 0.6;
-        const cols = Math.floor(width / charWidth);
-        const rows = Math.floor(height / lineHeight);
+        const data = loadedImageData.data;
+        let cleanMessage = textToDraw.replace(/\s+/g, " ").trim();
+        if (!cleanMessage) cleanMessage = "Text Portrait ";
 
-        let cleanMsg = textToDraw.trim().replace(/\s+/g, " ");
-        while (cleanMsg.length < cols * rows) cleanMsg += " " + message;
-        cleanMsg = cleanMsg.slice(0, cols * rows);
+        const lineHeight = Math.round(fontSizeLocal * 1.2);
+        const charWidthEstimate = Math.round(fontSizeLocal * 0.6);
+        const charsPerLine = Math.floor(width / charWidthEstimate);
+        const linesNum = Math.floor(height / lineHeight);
+        const totalCharsNeeded = charsPerLine * linesNum;
 
-        ctx.font = `${fontSizeLocal}px Courier New, monospace`;
+        let fullMessage = "";
+        while (fullMessage.length < totalCharsNeeded) {
+          fullMessage += cleanMessage + " ";
+        }
+        fullMessage = fullMessage.slice(0, totalCharsNeeded);
+
+        ctx.font = fontSizeLocal + "px Courier New, monospace";
         ctx.textBaseline = "top";
 
-        let i = 0;
-        for (let y = 0; y < rows; y++) {
-          for (let x = 0; x < cols; x++) {
-            const letter = cleanMsg[i++];
-            const px = Math.floor(x * charWidth * dpr);
-            const py = Math.floor(y * lineHeight * dpr);
-            const index = (py * canvas.width + px) * 4;
-            const [r, g, b, a] = [data[index], data[index + 1], data[index + 2], data[index + 3]];
-            if (a === 0) continue;
+        let charIndex = 0;
+        for (let yLine = 0; yLine < linesNum; yLine++) {
+          for (let xChar = 0; xChar < charsPerLine; xChar++) {
+            if (charIndex >= fullMessage.length) break;
+            const letter = fullMessage[charIndex];
+            const x = xChar * charWidthEstimate;
+            const y = yLine * lineHeight;
+            const px = Math.min(Math.floor(x), width - 1);
+            const py = Math.min(Math.floor(y + fontSizeLocal / 2), height - 1);
+            const pixelIdx = (py * width + px) * 4;
+            const r = data[pixelIdx];
+            const g = data[pixelIdx + 1];
+            const b = data[pixelIdx + 2];
+            const a = data[pixelIdx + 3];
+            if (a === 0) {
+              charIndex++;
+              continue;
+            }
             ctx.fillStyle = `rgba(${r},${g},${b},${a / 255})`;
-            ctx.fillText(letter, x * charWidth, y * lineHeight);
+            ctx.fillText(letter, x, y);
+            charIndex++;
           }
         }
       }
 
       function drawTextPortraitWithTyping(fontSizeLocal, fullText) {
+        if (!loadedImageData) return;
+
         let currentIndex = 0;
         let displayedText = "";
+
         function type() {
           if (currentIndex <= fullText.length) {
             displayedText = fullText.slice(0, currentIndex);
             drawTextPortrait(fontSizeLocal, displayedText);
             currentIndex++;
-            setTimeout(type, 2);
+            setTimeout(type, 2); // ~10000 wpm speed approx.
           }
         }
         type();
@@ -258,12 +307,15 @@
         showButton.style.display = "none";
         container.style.display = "block";
         overlay.style.display = "block";
-        audio.play().catch(e => console.warn("Audio blocked:", e));
+        audio.play().catch((e) => {
+          console.warn("Audio play was prevented: ", e);
+        });
+        // pixelSizeControl remains hidden here
       });
 
       closeOverlay.addEventListener("click", () => {
         overlay.style.display = "none";
-        pixelSizeControl.style.display = "flex";
+        pixelSizeControl.style.display = "flex"; // show pixel adjuster now
         drawTextPortraitWithTyping(fontSize, message);
       });
 
